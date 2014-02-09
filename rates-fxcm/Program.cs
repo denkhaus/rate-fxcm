@@ -1,39 +1,49 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using Mono.Options;
+using NDesk.Options;
+using NDesk.Options.Extensions;
 
 
 namespace ratesfxcm
 {
 	class MainClass
 	{
-        private static ExpandoObject ParserOptions(IEnumerable<string> args)
+		private static ExpandoObject ParserOptions(string[] args)
         {
+			var CONSOLE_NAME = "rates-fxcm";
             dynamic expando = new ExpandoObject();
             
-            expando.Verbosity = 0;
+			expando.Parsed = false;
+			expando.Verbose = false;
             expando.Filter = String.Empty;
 
-            var p = new OptionSet{
-                { "f|filter=", "filter the Symbol by regex.", v => expando.Filter = v },
-                { "v", "increase debug message verbosity", v => { if (v != null) ++expando.Verbosity; } },
-                { "h|help",  "get command help", v => expando.ShowHelp = v != null }
-            };
+			var os = new RequiredValuesOptionSet(); 
 
             try
             {
-                p.Parse(args);
-            }
+				var filter = os.AddVariable<string> ("f|filter", "filter the symbol by regex.");
+				var verbose = os.AddSwitch("v|verbose", "get additional infos");
+
+				var manager = new ConsoleManager(CONSOLE_NAME, os, "h|help",  "get command help");
+
+				if(manager.TryParseOrShowHelp(Console.Out, args))
+				{
+					expando.Filter = filter.Value;
+					expando.Verbose = verbose.Enabled;
+					expando.Parsed =   true;
+				}
+			} 
             catch (OptionException e)
             {
-                Console.Write("rates-fxcm: ");
+				Console.Write(CONSOLE_NAME + ": ");
                 Console.WriteLine(e.Message);
-                Console.WriteLine("Try `rates-fxcm --help' for more information.");
+				Console.WriteLine("Try `" + CONSOLE_NAME + " --help' for more information.");
             }
 
             return expando;
@@ -43,7 +53,7 @@ namespace ratesfxcm
 	    {
             try
             {
-                if (opts.Verbosity > 0)
+				if (opts.Verbose)
                 {
                     Console.WriteLine("Fetch Rates");
                 }
@@ -58,14 +68,14 @@ namespace ratesfxcm
                     DateTime = r.Element("Last").Value
                 }).ToArray();
 
-                if (opts.Verbosity > 0)
+				if (opts.Verbose)
                 {
                     Console.WriteLine("{0} DataSets received.", data.Count());
                 }
 
                 if (!string.IsNullOrEmpty(opts.Filter))
                 {
-                    if (opts.Verbosity > 0)
+					if (opts.Verbose)
                     {
                         Console.WriteLine("Apply Filter: {0}", opts.Filter);
                     }
@@ -76,7 +86,7 @@ namespace ratesfxcm
 
                 var result = new StringBuilder();
 
-                if (opts.Verbosity > 0)
+				if (opts.Verbose)
                 {
                     Console.WriteLine("{0} Results:", data.Count());
                 }
@@ -95,11 +105,12 @@ namespace ratesfxcm
 	    }
 
 
-
 	    public static void Main (string[] args)
 	    {
-	        var opts = ParserOptions(args);
-	        ParseRates(opts);
+			dynamic opts = ParserOptions(args);
+
+			if(opts.Parsed)
+	        	ParseRates(opts);
 	    }
 
 	    
