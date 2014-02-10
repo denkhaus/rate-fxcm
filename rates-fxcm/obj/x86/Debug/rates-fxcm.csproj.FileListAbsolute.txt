@@ -1,5 +1,0 @@
-E:\dotnet\rates-fxcm\rates-fxcm\bin\Debug\rates-fxcm.exe
-E:\dotnet\rates-fxcm\rates-fxcm\bin\Debug\rates-fxcm.pdb
-E:\dotnet\rates-fxcm\rates-fxcm\obj\x86\Debug\rates-fxcm.csprojResolveAssemblyReference.cache
-E:\dotnet\rates-fxcm\rates-fxcm\obj\x86\Debug\rates-fxcm.exe
-E:\dotnet\rates-fxcm\rates-fxcm\obj\x86\Debug\rates-fxcm.pdb
